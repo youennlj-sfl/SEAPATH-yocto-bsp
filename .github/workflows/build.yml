@@ -1,4 +1,7 @@
-name: CI
+# Builds SEAPATH and uploads SBOM artifacts.
+# This workflow calls the cve-check workflow after build.
+---
+name: Build
 
 on:
   # TODO: make the workflow triggerable by all SEAPATH-related repositories
@@ -13,7 +16,7 @@ jobs:
       fail-fast: true # TODO eventually set to false
       max-parallel: 1
       matrix:
-        cqfd_flavor: ["host_efi", "guest_efi", "observer_efi", "host_standalone_efi"]
+        cqfd_flavor: ${{ fromJSON(vars.CQFD_FLAVORS) }}
     env:
       REPO_MANIFEST_REPOSITORY: https://github.com/seapath/repo-manifest
       REPO_MANIFEST_REF: HEAD
@@ -67,6 +70,7 @@ jobs:
           rm -rf build
 
   call-cve-check:
+    needs: build
     uses: ./.github/workflows/cve-check.yml
     with:
       build-run-id: ${{ github.run_id }}
