@@ -8,22 +8,23 @@ on:
 
 jobs:
   call-build:
+    name: Call Build workflow
     uses: ./.github/workflows/_build.yml
 
   call-cve-check:
+    name: Call CVE check workflow
     needs: call-build
     uses: ./.github/workflows/_cve-check.yml
     with:
       build-run-id: ${{ github.run_id }}
 
   set-result:
+    name: Set workflow status
     needs: call-cve-check
     runs-on: ["self-hosted", "linux"]
     steps:
-      - name: Check output of cve-check job
+      - name: Fail job if CVE detected
+        if: needs.call-cve-check.outputs.cve-detected
         run: |
-          if [ "${{ needs.call-cve-check.outputs.cve-detected }}" = true ]; then
-            echo Vulnerabilities triggered the fail condition.
-            echo See logs from previous job.
-            exit 1
-          fi
+          echo ::error::Vulnerabilities triggered the fail condition for your build.
+          exit 1

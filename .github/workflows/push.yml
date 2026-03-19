@@ -14,9 +14,11 @@ on:
 
 jobs:
   call-build:
+    name: Call Build workflow
     uses: ./.github/workflows/_build.yml
 
   call-cve-check:
+    name: Call CVE check workflow
     needs: call-build
     uses: ./.github/workflows/_cve-check.yml
     with:
