@@ -1,5 +1,4 @@
 # Builds SEAPATH and uploads SBOM artifacts.
-# This workflow calls the cve-check workflow after build.
 ---
 name: Build
 
@@ -68,9 +67,3 @@ jobs:
         if: always()
         run: |
           rm -rf build
-
-  call-cve-check:
-    needs: build
-    uses: ./.github/workflows/cve-check.yml
-    with:
-      build-run-id: ${{ github.run_id }}
