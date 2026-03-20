@@ -5,6 +5,17 @@ name: Build (internal)
 
 on:
   workflow_call:
+    inputs:
+      origin_repo:
+        type: string
+        required: true
+        description: Repository that triggered this workflow dispatch.
+      origin_ref:
+        type: string
+        required: true
+        description: >-
+          Git ref of the commit that triggered the build on the origin
+          repository.
 
 jobs:
   build:
@@ -15,8 +26,8 @@ jobs:
       matrix:
         cqfd_flavor: ${{ fromJSON(vars.CQFD_FLAVORS) }}
     env:
-      REPO_MANIFEST_REPOSITORY: https://github.com/seapath/repo-manifest
-      REPO_MANIFEST_REF: HEAD
+      REPO_MANIFEST_URL: https://github.com/${{ vars.REPO_MANIFEST_REPOSITORY }}
+      REPO_MANIFEST_REF: ${{ case(inputs.origin_repo == vars.REPO_MANIFEST_REPOSITORY, inputs.origin_ref, 'HEAD') }}
       REPO_MANIFEST_NAME: default.xml
       WORKSPACE: workspace-bitbake
     defaults:
@@ -29,10 +40,13 @@ jobs:
 
       - name: Init repo
         run: |
-          repo init -u "$REPO_MANIFEST_REPOSITORY" -b "$REPO_MANIFEST_REF" -m "$REPO_MANIFEST_NAME"
+          repo init -u "$REPO_MANIFEST_URL" -b "$REPO_MANIFEST_REF" -m "$REPO_MANIFEST_NAME"
           repo sync
 
-      # TODO checkout specific ref based on the even that triggered the CI
+      - name: Checkout specific ref
+        if: inputs.origin_repo != vars.REPO_MANIFEST_REPOSITORY
+        run: |
+          # TODO
 
       - name: Init build system
         run: |

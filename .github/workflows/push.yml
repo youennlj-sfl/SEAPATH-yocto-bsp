@@ -1,21 +1,36 @@
 name: Build on push
 
 on:
-  # TODO: make the workflow triggerable by all SEAPATH-related repositories
-  # using a "repository_dispatch" trigger:
-  # https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#repository_dispatch
+  # This is for yocto-bsp itself.
   push:
     branches:
       - scarthgap
     paths-ignore:
       - .github/**/*
-  # We add the manual dispatch trigger so we can test our pipelines
+  # The manual dispatch trigger is for other repositories (such as meta-seapath)
+  # that must be able to trigger the build pipeline.
+  # We don't use repository_dispatch since there would be no way for the caller
+  # workflow to wait for completion (https://github.com/peter-evans/repository-dispatch/issues/260).
   workflow_dispatch:
+    inputs:
+      origin_repo:
+        type: string
+        required: true
+        description: Repository that triggered this workflow dispatch.
+      origin_ref:
+        type: string
+        required: true
+        description: >-
+          Git ref of the commit that triggered the build on the origin
+          repository.
 
 jobs:
   call-build:
     name: Call Build workflow
     uses: ./.github/workflows/_build.yml
+    with:
+      origin_repo: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_repo, github.repository) }}"
+      origin_ref: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_ref, github.ref) }}"
 
   call-cve-check:
     name: Call CVE check workflow
