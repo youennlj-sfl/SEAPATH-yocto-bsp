@@ -23,6 +23,13 @@ jobs:
       run:
         working-directory: ${{ env.WORKSPACE }}
     steps:
+      # We clean the workspace at the beginning to easily debug failed runs
+      - name: Clean workspace
+        if: vars.CLEAN_YOCTO_WORKSPACE
+        working-directory: ${{ github.workspace }}
+        run: |
+          rm -rf ${{ env.WORKSPACE }}
+
       - name: Create workspace
         working-directory: ${{ github.workspace }}
         run: mkdir -p ${{ env.WORKSPACE }}
@@ -40,10 +47,6 @@ jobs:
           touch "keys/ansible_public_ssh_key.pub"
           cp seapath.conf.sample seapath.conf
 
-      - name: Cleanup old builds
-        run: |
-          rm -rf build
-
       - name: Build ${{ matrix.cqfd_flavor }}
         run: |
           # Since we are in a non-interactive bash, the bashrc file is not
@@ -60,8 +63,3 @@ jobs:
             ${{ env.WORKSPACE }}/build/tmp/deploy/images/**/*.rootfs.json
             ${{ env.WORKSPACE }}/build/tmp/deploy/images/**/*.rootfs.spdx.tar.zst
           if-no-files-found: warn
-
-      - name: Clean build directory
-        if: always()
-        run: |
-          rm -rf build
