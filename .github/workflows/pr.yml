@@ -28,3 +28,8 @@ jobs:
         run: |
           echo ::error::Vulnerabilities triggered the fail condition for your build.
           exit 1
+
+  # Might be interesting to post a comment to the PR if CVEs have been found?
+  # This would require a separate trigger 'workflow_run' to get privileges.
+  # https://github.com/marketplace/actions/create-or-update-comment
+  # https://securitylab.github.com/resources/github-actions-preventing-pwn-requests/

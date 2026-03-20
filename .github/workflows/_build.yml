@@ -41,6 +41,7 @@ jobs:
           cp seapath.conf.sample seapath.conf
 
       - name: Cleanup old builds
+        if: vars.CLEAN_BUILD_DIR
         run: |
           rm -rf build
 
@@ -62,6 +63,6 @@ jobs:
           if-no-files-found: warn
 
       - name: Clean build directory
-        if: always()
+        if: always() && vars.CLEAN_BUILD_DIR
         run: |
           rm -rf build
