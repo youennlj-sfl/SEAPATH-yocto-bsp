@@ -11,14 +11,14 @@ on:
         required: true
         description: >-
           Name of the project that triggered this workflow dispatch.
-          It should correspond to a project name in the repo manifest or
-          be "repo-manifest" itself.
-      origin_ref:
+          It should correspond to a project name in the repo manifest
+          or be "repo-manifest" itself.
+      origin_sha:
         type: string
         required: true
         description: >-
-          Git ref of the commit that triggered the build on the origin
-          repository.
+          Value of the GITHUB_SHA variable for the workflow on the
+          origin repository.
 
 jobs:
   build:
@@ -30,7 +30,7 @@ jobs:
         cqfd_flavor: ${{ fromJSON(vars.CQFD_FLAVORS) }}
     env:
       REPO_MANIFEST_URL: https://github.com/${{ vars.REPO_MANIFEST_REPOSITORY }}
-      REPO_MANIFEST_REF: ${{ case(inputs.origin_repo_project == 'repo-manifest', inputs.origin_ref, 'HEAD') }}
+      REPO_MANIFEST_REF: ${{ case(inputs.origin_repo_project == 'repo-manifest', inputs.origin_sha, 'HEAD') }}
       REPO_MANIFEST_NAME: default.xml
       WORKSPACE: workspace-bitbake
     defaults:
@@ -39,7 +39,7 @@ jobs:
     steps:
       # We clean the workspace at the beginning to easily debug failed runs
       - name: Clean workspace
-        if: vars.CLEAN_YOCTO_WORKSPACE
+        if: "${{ vars.CLEAN_YOCTO_WORKSPACE == 'true' }}"
         working-directory: ${{ github.workspace }}
         run: |
           rm -rf ${{ env.WORKSPACE }}
@@ -58,9 +58,13 @@ jobs:
         run: |
           path=$(repo list | awk -F ' : ' '$2 == "${{ inputs.origin_repo_project }}" {print $1}')
           echo "Checking out specific revision in git repo at $path..."
-
           cd "$path"
-          git checkout "${{ inputs.origin_ref }}"
+
+          # repo only creates 1 remote so no problem here
+          remote=$(git remote)
+
+          git fetch "$remote" "${{ inputs.origin_sha }}"
+          git checkout FETCH_HEAD
 
       - name: Init build system
         run: |

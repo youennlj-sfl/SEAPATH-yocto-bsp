@@ -18,14 +18,14 @@ on:
         required: true
         description: >-
           Name of the project that triggered this workflow dispatch.
-          It should correspond to a project name in the repo manifest or
-          be "repo-manifest" itself.
-      origin_ref:
+          It should correspond to a project name in the repo manifest
+          or be "repo-manifest" itself.
+      origin_sha:
         type: string
         required: true
         description: >-
-          Git ref of the commit that triggered the build on the origin
-          repository.
+          Value of the GITHUB_SHA variable for the workflow on the
+          origin repository.
 
 run-name: "Push to ${{ inputs.origin_repo_project }}"
 
@@ -35,7 +35,7 @@ jobs:
     uses: ./.github/workflows/_build.yml
     with:
       origin_repo_project: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_repo_project, vars.REPO_PROJECT) }}"
-      origin_ref: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_ref, github.ref) }}"
+      origin_sha: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_sha, github.sha) }}"
 
   call-cve-check:
     name: Call CVE check workflow
