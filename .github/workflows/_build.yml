@@ -37,7 +37,8 @@ jobs:
       run:
         working-directory: ${{ env.WORKSPACE }}
     steps:
-      # We clean the workspace at the beginning to easily debug failed runs
+      # We clean the workspace at the beginning and not at the end
+      # to easily debug failed runs
       - name: Clean workspace
         if: "${{ vars.CLEAN_YOCTO_WORKSPACE == 'true' }}"
         working-directory: ${{ github.workspace }}
@@ -88,3 +89,13 @@ jobs:
             ${{ env.WORKSPACE }}/build/tmp/deploy/images/**/*.rootfs.json
             ${{ env.WORKSPACE }}/build/tmp/deploy/images/**/*.rootfs.spdx.tar.zst
           if-no-files-found: warn
+
+      # We clean the image directory at the end so we don't pollute
+      # future workflows artifacts since in the above step we don't
+      # filter the artifacts we upload.
+      - name: Clean image deploy directory
+        if: always()
+        run: |
+          # see comment above
+          source /etc/bash.bashrc
+          cqfd -b ${{ matrix.cqfd_flavor }} run -c --clean-image
