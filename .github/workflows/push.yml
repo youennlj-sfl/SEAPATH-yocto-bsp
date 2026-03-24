@@ -27,15 +27,15 @@ on:
           Value of the GITHUB_SHA variable for the workflow on the
           origin repository.
 
-run-name: "Push to ${{ inputs.origin_repo_project }}"
+run-name: "Push to ${{ inputs.origin_repo_project || vars.REPO_PROJECT }}"
 
 jobs:
   call-build:
     name: Call Build workflow
     uses: ./.github/workflows/_build.yml
     with:
-      origin_repo_project: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_repo_project, vars.REPO_PROJECT) }}"
-      origin_sha: "${{ case(github.event_name == 'workflow_dispatch', github.event.inputs.origin_sha, github.sha) }}"
+      origin_repo_project: "${{ inputs.origin_repo_project || vars.REPO_PROJECT }}"
+      origin_sha: "${{ inputs.origin_sha || github.sha }}"
 
   call-cve-check:
     name: Call CVE check workflow
