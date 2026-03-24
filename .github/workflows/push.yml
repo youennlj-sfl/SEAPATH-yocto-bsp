@@ -31,7 +31,8 @@ on:
 run-name: "Push to ${{ inputs.origin_repository || github.repository }}"
 
 jobs:
-  prepare:
+  notice:
+    name: Display notice
     if: "${{ github.event_name == 'workflow_dispatch' }}"
     runs-on: ["ubuntu-slim"]
     steps:
