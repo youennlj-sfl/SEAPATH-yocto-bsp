@@ -13,30 +13,37 @@ on:
   # workflow to wait for completion (https://github.com/peter-evans/repository-dispatch/issues/260).
   workflow_dispatch:
     inputs:
-      origin_repo_project:
+      origin_repository:
         type: string
         required: true
-        description: >-
-          Name of the project that triggered this workflow dispatch.
-          It should correspond to a project name in the repo manifest
-          or be "repo-manifest" itself.
+        description: Repository that triggered this workflow dispatch.
       origin_sha:
         type: string
         required: true
         description: >-
           Value of the GITHUB_SHA variable for the workflow on the
           origin repository.
+      origin_run_id:
+        type: number
+        required: true
+        description: ID of the delegating workflow run.
 
-run-name: "Push to ${{ inputs.origin_repo_project || vars.REPO_PROJECT }}"
+run-name: "Push to ${{ inputs.origin_repository || github.repository }}"
 
 jobs:
-  # TODO: display notice with link to dispatcher workflow (pass in inputs)
+  prepare:
+    if: "${{ github.event_name == 'workflow_dispatch' }}"
+    runs-on: ["ubuntu-slim"]
+    steps:
+      - name: Display notice
+        run: |
+          echo "::notice::This workflow has been delegated by the ${{ inputs.origin_repository }} repository. See the delegating workflow at ${{ github.server_url }}/${{ inputs.origin_repository }}/actions/runs/${{ inputs.origin_run_id }}."
 
   call-build:
     name: Call Build workflow
     uses: ./.github/workflows/_build.yml
     with:
-      origin_repo_project: "${{ inputs.origin_repo_project || vars.REPO_PROJECT }}"
+      origin_repository: "${{ inputs.origin_repository || github.repository }}"
       origin_sha: "${{ inputs.origin_sha || github.sha }}"
 
   call-cve-check:

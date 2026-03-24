@@ -6,13 +6,10 @@ name: Build (internal)
 on:
   workflow_call:
     inputs:
-      origin_repo_project:
+      origin_repository:
         type: string
         required: true
-        description: >-
-          Name of the project that triggered this workflow dispatch.
-          It should correspond to a project name in the repo manifest
-          or be "repo-manifest" itself.
+        description: Repository that triggered this workflow dispatch.
       origin_sha:
         type: string
         required: true
@@ -30,7 +27,7 @@ jobs:
         cqfd_flavor: ${{ fromJSON(vars.CQFD_FLAVORS) }}
     env:
       REPO_MANIFEST_URL: https://github.com/${{ vars.REPO_MANIFEST_REPOSITORY }}
-      REPO_MANIFEST_REF: ${{ case(inputs.origin_repo_project == 'repo-manifest', inputs.origin_sha, 'HEAD') }}
+      REPO_MANIFEST_REF: ${{ case(inputs.origin_repository == vars.REPO_MANIFEST_REPOSITORY, inputs.origin_sha, 'HEAD') }}
       REPO_MANIFEST_NAME: default.xml
       WORKSPACE: workspace-bitbake
     defaults:
@@ -55,12 +52,15 @@ jobs:
           repo sync
 
       - name: Checkout specific ref
-        if: inputs.origin_repo_project != 'repo-manifest'
+        if: inputs.origin_repository != vars.REPO_MANIFEST_REPOSITORY
+        env:
+          ORIGIN_REPOSITORY: ${{ inputs.origin_repository }}
         run: |
-          path=$(repo list | awk -F ' : ' '$2 == "${{ inputs.origin_repo_project }}" {print $1}')
-          echo "Checking out specific revision in git repo at $path..."
-          cd "$path"
+          repo_name=${ORIGIN_REPOSITORY#*/} # this removes the '<organization>/' prefix
+          path=$(repo list | awk -v repo_name="$repo_name" -F ' : ' '$2 == repo_name {print $1}')
+          echo "Checking out specific revision for git repo "$repo_name" at "$path"..."
 
+          cd "$path"
           # repo only creates 1 remote so no problem here
           remote=$(git remote)
 
