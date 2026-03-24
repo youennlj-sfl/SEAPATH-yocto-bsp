@@ -30,6 +30,8 @@ on:
 run-name: "Push to ${{ inputs.origin_repo_project || vars.REPO_PROJECT }}"
 
 jobs:
+  # TODO: display notice with link to dispatcher workflow (pass in inputs)
+
   call-build:
     name: Call Build workflow
     uses: ./.github/workflows/_build.yml
