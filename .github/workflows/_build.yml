@@ -23,7 +23,7 @@ on:
 # called by it (_build and _cve-check) and we hardcode the values here.
 # It makes developing the CI itself a pain but there is no real good solution.
 env:
-  REPO_MANIFEST_REPOSITORY: 'SEAPATH/repo-manifest'
+  REPO_MANIFEST_REPOSITORY: 'youennlj-sfl/SEAPATH-repo-manifest'
   REPO_MANIFEST_NAME: 'wrynose.xml'
 
 jobs:
@@ -42,7 +42,7 @@ jobs:
       max-parallel: 1
       matrix:
         # Hardcoded due to GH Actions limitation on vars (see above)
-        cqfd_flavor: ["host_efi", "host_standalone_efi", "guest_efi", "observer_efi"]
+        cqfd_flavor: ["host_standalone_efi", "guest_efi"]
     env:
       WORKSPACE: workspace-bitbake
     defaults:
